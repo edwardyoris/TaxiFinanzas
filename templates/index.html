@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚖 Taxi Finanzas</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Variables de tema */
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --header-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --input-bg: #ffffff;
+            --tab-inactive: #ffffff;
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-color: #404040;
+            --card-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            --header-gradient: linear-gradient(135deg, #2c3e50 0%, #1a1a2e 100%);
+            --input-bg: #3d3d3d;
+            --tab-inactive: #3d3d3d;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            padding: 15px;
+            transition: background-color 0.3s, color 0.3s;
+            color: var(--text-primary);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Header con perfil */
+        .header {
+            background: var(--header-gradient);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-text h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header-text p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .profile-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .welcome-message {
+            text-align: right;
+        }
+        
+        .welcome-message .greeting {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .welcome-message .name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        /* Botón de tema */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Tarjetas de resumen */
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .resumen-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s;
+        }
+        
+        .resumen-card.ganancias {
+            border-left: 4px solid #10b981;
+        }
+        
+        .resumen-card.gastos {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .resumen-card.neto {
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .resumen-card.horas {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .resumen-titulo {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .resumen-cantidad {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+        
+        .resumen-cantidad.positivo {
+            color: #10b981;
+        }
+        
+        .resumen-cantidad.negativo {
+            color: #ef4444;
+        }
+        
+        /* Filtros */
+        .filtros-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .filtros-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        
+        .filtro-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .filtro-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .filtro-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+        
+        .btn-filtrar {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .btn-toggle {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        /* Formulario nuevo registro */
+        .nuevo-registro {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--tab-inactive);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+        
+        .tab.active[data-tipo="gasto"] {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        
+        .tab.active[data-tipo="ganancia"] {
+            background: #dcfce7;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+        
+        .form-group select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .btn-guardar {
+            width: 100%;
+            padding: 14px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        /* Tabla de registros */
+        .registros-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .registros-header {
+            display: grid;
+            grid-template-columns: 100px 140px 80px 100px 100px 100px 1fr 80px;
+            background: var(--bg-primary);
+            padding: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            min-width: 1000px;
+        }
+        
+        .registro-row {
+            display: grid;
+            grid-template-columns: 100px 140px 80px 100px 100px 100px 1fr 80px;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            min-width: 1000px;
+            color: var(--text-primary);
+        }
+        
+        .registro-row:hover {
+            background: var(--bg-primary);
+        }
+        
+        .tipo-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            display: inline-block;
+            width: fit-content;
+        }
+        
+        .tipo-gasto {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .tipo-ganancia {
+            background: #dcfce7;
+            color: #065f46;
+        }
+        
+        .acciones {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-editar,
+        .btn-eliminar {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-editar {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-eliminar {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* Mensajes flash */
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: opacity 1s;
+        }
+        
+        .flash-success {
+            background: #dcfce7;
+            color: #065f46;
+            border: 1px solid #86efac;
+        }
+        
+        .flash-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        /* Colores para montos */
+        .positivo {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .negativo {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-content {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .profile-section {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .welcome-message {
+                text-align: left;
+            }
+            
+            .registros-header {
+                display: none;
+            }
+            
+            .registro-row {
+                display: block;
+                min-width: auto;
+                padding: 15px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .registro-row > div {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px dashed var(--border-color);
+            }
+            
+            .registro-row > div:last-child {
+                border-bottom: none;
+            }
+            
+            .registro-row > div::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin-right: 10px;
+            }
+            
+            .acciones {
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header con perfil -->
+        <div class="header">
+            <div class="header-content">
+		<div class="profile-image">
+    		<img src="{{ url_for('static', filename='perfil.png') }}" 
+         	alt="Perfil" 
+         	style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+		</div>
+                <div class="header-text">
+                    <h1>🚖 Taxi Finanzas</h1>
+                    <p>Controla tus gastos y ganancias al volante</p>
+                </div>
+            </div>
+            
+            <div class="profile-section">
+                <div class="welcome-message">
+                    <div class="greeting">¡Bienvenido,</div>
+                    <div class="name">Edward A. Yoris 👋</div>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="theme-icon">🌙</span> <span id="theme-text">Modo Oscuro</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Tarjetas de Resumen -->
+        <div class="resumen-grid">
+            <div class="resumen-card ganancias">
+                <div class="resumen-titulo">💰 Ganancias Netas</div>
+                <div class="resumen-cantidad positivo">S/ {{ "%.2f"|format(resumen.ganancias) }}</div>
+            </div>
+            
+            <div class="resumen-card gastos">
+                <div class="resumen-titulo">📉 Gastos</div>
+                <div class="resumen-cantidad negativo">S/ {{ "%.2f"|format(resumen.gastos) }}</div>
+            </div>
+            
+            <div class="resumen-card neto">
+                <div class="resumen-titulo">⚖️ Neto del Día</div>
+                <div class="resumen-cantidad {{ 'positivo' if resumen.neto >= 0 else 'negativo' }}">
+                    S/ {{ "%.2f"|format(resumen.neto) }}
+                </div>
+            </div>
+            
+            <div class="resumen-card horas">
+                <div class="resumen-titulo">⏱️ Horas trabajadas</div>
+                <div class="resumen-cantidad">{{ resumen.horas }} horas</div>
+            </div>
+        </div>
+        
+        <!-- Filtros de Fecha -->
+        <div class="filtros-section">
+            <form method="GET" action="/" class="filtros-form">
+                <div class="filtro-group">
+                    <label>Fecha Inicio</label>
+                    <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
+                </div>
+                
+                <div class="filtro-group">
+                    <label>Fecha Fin</label>
+                    <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
+                </div>
+                
+                <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+                <a href="/" class="btn-toggle">🗑️ Limpiar</a>
+            </form>
+        </div>
+        
+        <!-- Nuevo Registro -->
+        <div class="nuevo-registro">
+            <form method="POST" action="/registro/nuevo">
+                <div class="tabs">
+                    <button type="button" class="tab active" data-tipo="gasto" onclick="selectTipo('gasto')">💸 Gasto</button>
+                    <button type="button" class="tab" data-tipo="ganancia" onclick="selectTipo('ganancia')">💰 Ganancia</button>
+                </div>
+                
+                <input type="hidden" name="tipo" id="tipo" value="gasto">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="datetime-local" name="fecha_hora" id="fecha_hora" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <select name="categoria" id="categoria" required>
+                            <option value="">Categoría</option>
+                            <optgroup label="Gastos" id="gastos-opts">
+                                <option value="Combustible">⛽ Combustible</option>
+                                <option value="Almuerzo">🍱 Almuerzo</option>
+                                <option value="Agua">💧 Agua</option>
+                                <option value="Otros">📦 Otros</option>
+                            </optgroup>
+                            <optgroup label="Ganancias" id="ganancias-opts" style="display:none;">
+                                <option value="Uber">🚗 Uber (26.55%)</option>
+                                <option value="InDriver">🚙 InDriver (10.95%)</option>
+                                <option value="Cabify">🚕 Cabify (0%)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="number" step="0.01" name="cantidad" placeholder="Monto Bruto S/" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" name="descripcion" placeholder="Descripción (opcional)">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-guardar">📝 Guardar Registro</button>
+            </form>
+        </div>
+        
+        <!-- Listado de Registros -->
+        <div class="registros-section">
+            <div class="registros-header">
+                <div>ID</div>
+                <div>Fecha y Hora</div>
+                <div>Tipo</div>
+                <div>Categoría</div>
+                <div>Monto Bruto</div>
+                <div>Monto Neto</div>
+                <div>Descripción</div>
+                <div>Acciones</div>
+            </div>
+            
+            {% for reg in registros %}
+            <div class="registro-row">
+                <div data-label="ID">{{ reg[1] }}</div>
+                <div data-label="Fecha">{{ reg[3][:16] }}</div>
+                <div data-label="Tipo">
+                    <span class="tipo-badge tipo-{{ reg[2] }}">
+                        {{ reg[2].upper() }}
+                    </span>
+                </div>
+                <div data-label="Categoría">{{ reg[4] }}</div>
+                <div data-label="Monto Bruto">
+                    {% if reg[2] == 'ganancia' and reg[4] in ['Uber', 'InDriver', 'Cabify'] %}
+                        S/ {{ "%.2f"|format(reg[7]) }}
+                    {% else %}
+                        S/ {{ "%.2f"|format(reg[5]) }}
+                    {% endif %}
+                </div>
+                <div data-label="Monto Neto" class="{{ 'positivo' if reg[2] == 'ganancia' else 'negativo' }}">
+                    S/ {{ "%.2f"|format(reg[5]) }}
+                </div>
+                <div data-label="Descripción">{{ reg[6] or '-' }}</div>
+                <div data-label="Acciones" class="acciones">
+                    <a href="/registro/editar/{{ reg[0] }}" class="btn-editar">✏️</a>
+                    <a href="/registro/eliminar/{{ reg[0] }}" class="btn-eliminar" 
+                       onclick="return confirm('¿Eliminar este registro?')">🗑️</a>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                📭 No hay registros para mostrar
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        // Función para cambiar tema
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            
+            // Guardar preferencia
+            localStorage.setItem('theme', newTheme);
+            
+            // Actualizar botón
+            const themeIcon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            
+            if (newTheme === 'dark') {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Modo Claro';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Modo Oscuro';
+            }
+        }
+        
+        // Cargar tema guardado
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            const themeIcon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            
+            if (savedTheme === 'dark') {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Modo Claro';
+            }
+            
+            // Auto-cerrar notificaciones después de 5 segundos
+            setTimeout(function() {
+                const flashMessages = document.querySelector('.flash-messages');
+                if (flashMessages) {
+                    flashMessages.style.transition = 'opacity 1s';
+                    flashMessages.style.opacity = '0';
+                    setTimeout(() => {
+                        if (flashMessages.parentNode) {
+                            flashMessages.remove();
+                        }
+                    }, 1000);
+                }
+            }, 5000);
+            
+            // Actualizar fecha/hora cada segundo
+            const fechaInput = document.getElementById('fecha_hora');
+            
+            function actualizarFechaHora() {
+                const ahora = new Date();
+                const año = ahora.getFullYear();
+                const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+                const dia = String(ahora.getDate()).padStart(2, '0');
+                const horas = String(ahora.getHours()).padStart(2, '0');
+                const minutos = String(ahora.getMinutes()).padStart(2, '0');
+                
+                fechaInput.value = `${año}-${mes}-${dia}T${horas}:${minutos}`;
+            }
+            
+            // Actualizar cada segundo
+            actualizarFechaHora();
+            setInterval(actualizarFechaHora, 1000);
+        });
+        
+        function selectTipo(tipo) {
+            // Actualizar tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Actualizar input hidden
+            document.getElementById('tipo').value = tipo;
+            
+            // Mostrar categorías correspondientes
+            if (tipo === 'gasto') {
+                document.getElementById('gastos-opts').style.display = 'block';
+                document.getElementById('ganancias-opts').style.display = 'none';
+            } else {
+                document.getElementById('gastos-opts').style.display = 'none';
+                document.getElementById('ganancias-opts').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
